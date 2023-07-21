@@ -5,9 +5,31 @@ use crate::vector::Ray;
 mod vector;
 
 fn ray_colour(r:Ray) -> Colour {
+    let mut t = hit_sphere(vector::Point::_new(0.0, 0.0, -1.0), 0.5, &r);
+    if t > 0.0
+    {
+        let n:Vec3 = vector::Vec3::unit_vector(r._at(t) - vector::Vec3::_new(0.0, 0.0, -1.0));
+        return Colour::_new(n.x + 1.0, n.y + 1.0, n.z + 1.0) * 0.5;
+    }
     let unit_direction:Vec3 = vector::Vec3::unit_vector(r.dir);
-    let t = 0.5*(unit_direction.y + 1.0);
+    t = 0.5*(unit_direction.y + 1.0);   
     return Colour::_new(1.0, 1.0, 1.0)*(1.0-t) + Colour::_new(0.5, 0.7, 1.0)*t;
+}
+
+fn hit_sphere(center:vector::Point, radius:f64, r:&Ray) -> f64
+{
+    let oc = r.origin - center;
+    let a = vector::Vec3::_dot(r.dir, r.dir);
+    let b = 2.0 * vector::Vec3::_dot(oc, r.dir);
+    let c = vector::Vec3::_dot(oc, oc) - radius*radius;
+    let discriminant = b*b - 4.0*a*c;
+
+    if discriminant < 0.0 {
+        return -1.0;
+    } else {
+        return (-b - discriminant.sqrt()) / (2.0*a);
+    }
+
 }
 
 fn main() {

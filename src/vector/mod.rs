@@ -2,9 +2,9 @@ use std::ops::{Sub, Add, Mul, Div};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Vec3 {
-    x: f64,
+    pub x: f64,
     pub y: f64,
-    z: f64
+    pub z: f64
 }
 
 impl Add for Vec3 {
@@ -46,7 +46,7 @@ impl Vec3 {
     pub fn _length(self) -> f64 {
         return self._length_squared().sqrt();
     }
-    pub fn _dot(u: &Vec3, v: &Vec3) -> f64 {
+    pub fn _dot(u: Vec3, v: Vec3) -> f64 {
         return u.x * v.x + u.y * v.y + u.z * v.z;
     }
     pub fn _cross(u: &Vec3, v: &Vec3) -> Vec3 {
