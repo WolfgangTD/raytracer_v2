@@ -23,13 +23,11 @@ fn hit_sphere(center:vector::Point, radius:f64, r:&Ray) -> f64
     let half_b = vector::Vec3::_dot(oc, r.dir);
     let c = oc._length_squared() - radius*radius;
     let discriminant = half_b*half_b - a*c;
-
     if discriminant < 0.0 {
         return -1.0;
     } else {
         return (-half_b - discriminant.sqrt()) / (a);
     }
-
 }
 
 fn main() {
