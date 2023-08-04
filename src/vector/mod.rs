@@ -67,6 +67,7 @@ impl Vec3 {
 pub type Colour = Vec3;
 pub type Point = Vec3;
 
+#[derive(Clone, Copy)]
 pub struct Ray {
     pub origin:Point,
     pub dir:Vec3

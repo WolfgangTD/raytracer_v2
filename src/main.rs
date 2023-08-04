@@ -1,8 +1,10 @@
 use vector::Vec3;
+use hittable::{ HitRecord, Sphere};
 
 use crate::vector::Colour;
 use crate::vector::Ray;
 mod vector;
+mod hittable;
 
 fn ray_colour(r:Ray) -> Colour {
     let mut t = hit_sphere(vector::Point::_new(0.0, 0.0, -1.0), 0.5, &r);
