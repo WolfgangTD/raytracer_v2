@@ -1,24 +1,36 @@
-use vector::Vec3;
-use hittable::{ HitRecord, Sphere};
+use std::f64::INFINITY;
+use std::f64::consts::PI;
+use std::rc::Rc;
 
+use vector::Vec3;
+use hittable::{ HitRecord, Sphere, Hittable };
+
+
+use crate::hittables::HittableList;
 use crate::vector::Colour;
+use crate::vector::Point;
 use crate::vector::Ray;
 mod vector;
 mod hittable;
+mod hittables;
 
-fn ray_colour(r:Ray) -> Colour {
-    let mut t = hit_sphere(vector::Point::_new(0.0, 0.0, -1.0), 0.5, &r);
-    if t > 0.0
-    {
-        let n:Vec3 = vector::Vec3::unit_vector(r._at(t) - vector::Vec3::_new(0.0, 0.0, -1.0));
-        return Colour::_new(n.x + 1.0, n.y + 1.0, n.z + 1.0) * 0.5;
-    }
-    let unit_direction:Vec3 = vector::Vec3::unit_vector(r.dir);
-    t = 0.5*(unit_direction.y + 1.0);   
-    return Colour::_new(1.0, 1.0, 1.0)*(1.0-t) + Colour::_new(0.5, 0.7, 1.0)*t;
+//Utility Functions
+fn _degrees_to_radians(degrees:f64) -> f64 {
+    degrees * PI / 180.0
 }
 
-fn hit_sphere(center:vector::Point, radius:f64, r:&Ray) -> f64
+fn ray_colour(r:&Ray, world: &dyn Hittable) -> Colour {
+    let mut rec = HitRecord { p: (Point::_new(0.0, 0.0, 0.0)), normal: (Vec3::_new(0.0, 0.0, 0.0)), t: (0.0), front_face: (false) };
+    if world.hit(r, 0.0, INFINITY, &mut rec)
+    {
+        return (rec.normal + Colour::_new(1.0,1.0,1.0)) * 0.5;
+    }
+    let unit_direction:Vec3 = vector::Vec3::unit_vector(r.dir);
+    let t = 0.5*(unit_direction.y + 1.0);   
+    return (Colour::_new(1.0, 1.0, 1.0)*(1.0-t)) + (Colour::_new(0.5, 0.7, 1.0)*t);
+}
+
+fn _hit_sphere(center:vector::Point, radius:f64, r:&Ray) -> f64
 {
     let oc = r.origin - center;
     let a = r.dir._length_squared();
@@ -37,6 +49,11 @@ fn main() {
     const ASPECT_RATIO:f64 = 16.0/9.0;
     const IMAGE_WIDTH:i32 = 400;
     const IMAGE_HEIGHT:i32 = (IMAGE_WIDTH as f64/ASPECT_RATIO) as i32;
+
+    //World
+    let mut world = HittableList::new();
+    world.add(Rc::new(Sphere::new(Point::_new(0.0, 0.0, -1.0), 0.5)));
+    world.add(Rc::new(Sphere::new(Point::_new(0.0, -100.5, -1.0), 100.0)));
 
     //Camera
     let viewport_height = 2.0;
@@ -57,9 +74,10 @@ fn main() {
             let u = i as f64 / (IMAGE_WIDTH-1) as f64;
             let v = j as f64 / (IMAGE_HEIGHT-1) as f64;
             let r:Ray = Ray { origin: (origin), dir: (lower_left_corner + horizontal*u + vertical*v - origin) };
-            let pixel_colour = ray_colour(r);
+            let pixel_colour = ray_colour(&r, &world);
             vector::Colour::write_color(pixel_colour);
         }
         j-=1;
     }
+    eprintln!("\nDone.\n");
 }
