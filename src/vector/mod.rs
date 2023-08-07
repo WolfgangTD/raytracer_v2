@@ -44,6 +44,11 @@ impl Neg for Vec3 {
 
 
 impl Vec3 {
+    pub fn clamp(x:f64, min:f64, max:f64) -> f64 {
+        if x < min {return min;}
+        if x > max {return max;}
+        return x;
+    }
     pub fn _new(x:f64, y:f64, z:f64) -> Vec3 {
         return Vec3 { x: (x), y: (y), z: (z) }
     }
@@ -66,8 +71,23 @@ impl Vec3 {
     pub fn unit_vector(v: Vec3) -> Vec3{
         return v / v._length();
     }
-    pub fn write_color(pixel_colour:Colour) {
-        println!("{} {} {}", (255.999 * pixel_colour.x) as i32, (255.999 * pixel_colour.y) as i32, (255.999 * pixel_colour.z) as i32);
+
+    pub fn write_color(pixel_colour:Colour, samples_per_pixel: i32) {
+        let scale = 1.0/(samples_per_pixel as f64);
+
+        let mut r = pixel_colour.x;
+        let mut g = pixel_colour.y;
+        let mut b = pixel_colour.z;
+
+        
+        r *= scale;
+        g *= scale;
+        b *= scale;
+
+        let clampr = Vec3::clamp(r, 0.0, 0.999);
+        let clampg = Vec3::clamp(g, 0.0, 0.999);
+        let clampb = Vec3::clamp(b, 0.0, 0.999);
+        println!("{} {} {}", (256.0 * clampr) as i32 , (256.0 * clampg) as i32, (256.0 * clampb) as i32);
     }
 }
 

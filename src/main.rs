@@ -1,10 +1,11 @@
 use std::f64::INFINITY;
 use std::f64::consts::PI;
 use std::rc::Rc;
+use rand::prelude::*;
 
 use vector::Vec3;
 use hittable::{ HitRecord, Sphere, Hittable };
-
+use camera::Camera;
 
 use crate::hittables::HittableList;
 use crate::vector::Colour;
@@ -13,10 +14,17 @@ use crate::vector::Ray;
 mod vector;
 mod hittable;
 mod hittables;
+mod camera;
 
 //Utility Functions
 fn _degrees_to_radians(degrees:f64) -> f64 {
     degrees * PI / 180.0
+}
+
+fn rand_double() -> f64 {
+    let mut rng = rand::thread_rng();
+    let y: f64 = rng.gen_range(0.0..1.0);
+    return y;
 }
 
 fn ray_colour(r:&Ray, world: &dyn Hittable) -> Colour {
@@ -49,6 +57,7 @@ fn main() {
     const ASPECT_RATIO:f64 = 16.0/9.0;
     const IMAGE_WIDTH:i32 = 400;
     const IMAGE_HEIGHT:i32 = (IMAGE_WIDTH as f64/ASPECT_RATIO) as i32;
+    const SAMPLES_PER_PIXEL:i32 = 100;
 
     //World
     let mut world = HittableList::new();
@@ -56,14 +65,7 @@ fn main() {
     world.add(Rc::new(Sphere::new(Point::_new(0.0, -100.5, -1.0), 100.0)));
 
     //Camera
-    let viewport_height = 2.0;
-    let viewport_width = ASPECT_RATIO * viewport_height;
-    let focal_length = 1.0;
-
-    let origin = vector::Point::_new(0.0, 0.0, 0.0);
-    let horizontal = vector::Vec3::_new(viewport_width, 0.0, 0.0);
-    let vertical = vector::Vec3::_new(0.0, viewport_height, 0.0);
-    let lower_left_corner = origin - horizontal/2.0 - vertical/2.0 - vector::Vec3::_new(0.0, 0.0, focal_length);
+    let cam = Camera::new();
 
     //Render`
     println!("P3\n {IMAGE_WIDTH} {IMAGE_HEIGHT}\n255\n");
@@ -71,11 +73,14 @@ fn main() {
     while j >= 0 {
         eprintln!("\rScanlines remaining: {j}");
         for i in 0..IMAGE_WIDTH {
-            let u = i as f64 / (IMAGE_WIDTH-1) as f64;
-            let v = j as f64 / (IMAGE_HEIGHT-1) as f64;
-            let r:Ray = Ray { origin: (origin), dir: (lower_left_corner + horizontal*u + vertical*v - origin) };
-            let pixel_colour = ray_colour(&r, &world);
-            vector::Colour::write_color(pixel_colour);
+            let mut pixel_colour = Colour::_new(0.0, 0.0, 0.0);
+            for _s in 0..SAMPLES_PER_PIXEL {
+                let u = (i as f64 + rand_double()) / ((IMAGE_WIDTH-1) as f64);
+                let v = (j as f64 + rand_double()) / ((IMAGE_HEIGHT-1) as f64);
+                let r = cam.get_ray(u, v);
+                pixel_colour = pixel_colour + ray_colour(&r, &world);
+            }
+            Vec3::write_color(pixel_colour, SAMPLES_PER_PIXEL);
         }
         j-=1;
     }
